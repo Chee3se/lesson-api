@@ -65,19 +65,27 @@ class UpdateInfo extends Command
         $groups = Group::all();
         $lessons = Lesson::all();
         $result = [];
-        foreach ($groups as $group) {
-            $foundLessons = getArray('?id=m&g='.$group['name'], 'td');
+        //foreach ($groups as $group) {
+            $foundLessons = getArray('?id=m&g=IPa22', 'td');
             $day = 1;
             $lesson = ':/';
             $lesson = ':/';
             //for getting every second element
             $second = false;
+            $started = false;
             foreach ($foundLessons as $foundLesson) {
-                $text = trim(str_replace('\n', '', (str_replace('\r', '', $foundLesson->nodeValue))));
+                $text = $foundLesson->nodeValue;
                 //Incrimenting day
+                /*
+                if (str_contains($text, 'Dienas')) {
+
+                }
+                */
                 if (str_contains($text, 'Pārst.')) {
                     $day++;
-                } else if (!is_numeric($text)) {
+                } else if (!is_numeric($text)&&$text != "") {
+                    var_dump($text);
+                    /*
                     if (!$second) {
                         $lesson = $text;
                         $second = true;
@@ -91,10 +99,11 @@ class UpdateInfo extends Command
                             'teacher' => $teacher
                         ]);
                     }
+                    */
                 }
             }
-        }
-        var_dump($result);
+        //}
+        //var_dump($result);
         /*
         Lesson::create([
             'day' => 1,

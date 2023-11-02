@@ -29,6 +29,8 @@ class UpdateInfo extends Command
      */
     public function handle()
     {
+        Lesson::query()->delete();
+        Group::query()->delete();
         //Add Group function (checks if group already exists if not creates it (made it so its repeatable))
         function addGroup($new_group) {
             $groups = Group::all();
@@ -51,7 +53,6 @@ class UpdateInfo extends Command
             return $links;
         }
         //Group getting from page
-        /*
         $foundGroups = getArray('', 'a');
         foreach ($foundGroups as $link) {
             $href = $link->getAttribute('href');
@@ -60,50 +61,73 @@ class UpdateInfo extends Command
                 addGroup($groupName);
             }
         }
-        */
         //Lesson getting
         $groups = Group::all();
-        $lessons = Lesson::all();
-        $result = [];
-        //foreach ($groups as $group) {
-            $foundLessons = getArray('?id=m&g=IPa22', 'td');
-            $day = 1;
+        foreach ($groups as $group) {
+            $foundLessons = getArray('?id=m&g='.$group['name'], 'td');
+            $day = 0;
             $lesson = ':/';
-            $lesson = ':/';
-            //for getting every second element
-            $second = false;
+            $teacher = ':/';
             $started = false;
+            $count = 0;
             foreach ($foundLessons as $foundLesson) {
                 $text = $foundLesson->nodeValue;
-                //Incrimenting day
-                /*
-                if (str_contains($text, 'Dienas')) {
+                // Incrementing day
+                if ($started == true) {
 
-                }
-                */
-                if (str_contains($text, 'Pārst.')) {
-                    $day++;
-                } else if (!is_numeric($text)&&$text != "") {
-                    var_dump($text);
-                    /*
-                    if (!$second) {
-                        $lesson = $text;
-                        $second = true;
-                    } else {
-                        $teacher = $text;
-                        $second = false;
-                        array_push($result, [
-                            'day' => $day,
-                            'group' => $group['name'],
-                            'lesson' => $lesson,
-                            'teacher' => $teacher
-                        ]);
+                    if (str_contains($text, 'Pārst.')) {
+
+                        $day++;
+
+                    } else if (!is_numeric($text) && !str_contains($text, "\n")) {
+                        if ($count == 0) {
+
+                            $lesson = $text;
+                            $count = 1;
+
+                        } else if ($count == 1) {
+
+                            $teacher = $text;
+                            $count = 2;
+
+                        } else  {
+                            if ($count == 2) {
+                                if (empty($text)) {
+                                    Lesson::create([
+                                        'day' => $day,
+                                        'group' => $group['name'],
+                                        'lesson' => $lesson,
+                                        'teacher' => $teacher,
+                                    ]);
+                                    $count = 0;
+                                } else {
+
+                                    $lesson = $text;
+                                    $count = 3;
+
+                                }
+                            } else if ($count == 3) {
+
+                                Lesson::create([
+                                    'day' => $day,
+                                    'group' => $group['name'],
+                                    'lesson' => $lesson,
+                                    'teacher' => $text,
+                                ]);
+                                $count = 0;
+
+                            }
+
+                        }
+                        //var_dump($text);
                     }
-                    */
+                }
+                // Getting valuable info
+                if ($text == "Dienas ") {
+                    $started = true;
                 }
             }
-        //}
-        //var_dump($result);
+        }
         /*
         Lesson::create([
             'day' => 1,

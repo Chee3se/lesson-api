@@ -8,14 +8,14 @@ use DOMDocument;
 use Illuminate\Console\Command;
 use PhpParser\Node\Stmt\Foreach_;
 
-class UpdateInfo extends Command
+class Update extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'app:update';
+    protected $signature = 'update:info';
 
     /**
      * The console command description.
@@ -119,7 +119,7 @@ class UpdateInfo extends Command
                             }
 
                         }
-                        //var_dump($text);
+
                     }
                 }
                 // Getting valuable info
@@ -128,13 +128,5 @@ class UpdateInfo extends Command
                 }
             }
         }
-        /*
-        Lesson::create([
-            'day' => 1,
-            'group' => 'Monkeys',
-            'lesson' => 'Bananna peeling',
-            'teacher' => 'Monkey J.'
-        ]);
-        */
     }
 }

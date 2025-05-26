@@ -1,0 +1,33 @@
+export interface Lesson {
+    id: number;
+    period: number;
+    subject: string;
+    classroom: string;
+    teacher: string;
+    group: string;
+    division: string | null;
+    start: string;
+    end: string;
+}
+
+export interface LessonGroup {
+    timeKey: string;
+    lessons: Lesson[];
+}
+
+export interface Group {
+    id: number;
+    name: string;
+}
+
+export interface Week {
+    id: number;
+    name: string;
+    number: number;
+    start_date: string;
+}
+
+export interface WeekLessons {
+    week_id: number;
+    days: DaySchedule[];
+}

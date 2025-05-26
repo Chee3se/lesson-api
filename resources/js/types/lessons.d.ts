@@ -27,7 +27,13 @@ export interface Week {
     start_date: string;
 }
 
+export interface Day {
+    id: number;
+    day: string;
+    lessons: Lesson[];
+}
+
 export interface WeekLessons {
     week_id: number;
-    days: DaySchedule[];
+    days: Day[];
 }

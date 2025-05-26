@@ -19,12 +19,39 @@ class PageController extends Controller
         $groupId = $request->input('group_id');
         $group = $groupId ? Group::find($groupId) : Group::where('name', 'IPa22')->first();
         $weekId = $request->input('week_id');
-        $week = $weekId ? Week::find($weekId) : Week::where('start_date', '<=', now()->addDays(2))
-            ->orderBy('start_date', 'desc')
-            ->first();
+
+        $today = now()->format('Y-m-d');
+
+        if ($weekId) {
+            $week = Week::find($weekId);
+            if (!$request->has('week_id') && $week->start_date < $today) {
+                $week = Week::where('start_date', '>=', $today)
+                    ->orderBy('start_date')
+                    ->first();
+
+                if (!$week) {
+                    $week = Week::orderBy('start_date', 'desc')->first();
+                }
+            }
+        } else {
+            $week = Week::where('start_date', '>=', $today)
+                ->orderBy('start_date')
+                ->first();
+
+            if (!$week) {
+                $week = Week::orderBy('start_date', 'desc')->first();
+            }
+        }
+
+        $currentAndFutureWeeks = Week::where('start_date', '>=', $today)
+            ->orWhere('id', $week->id)
+            ->orderBy('start_date')
+            ->pluck('id');
 
         $rawLessons = Lesson::where('group_id', $group->id)
+            ->whereIn('week_id', $currentAndFutureWeeks)
             ->with(['day', 'subject', 'teacher', 'classroom', 'week', 'division', 'group'])
+            ->orderBy('week_id')
             ->orderBy('day_id')
             ->orderBy('period')
             ->get();
@@ -40,6 +67,7 @@ class PageController extends Controller
                 if ($dayLessons->isEmpty()) continue;
 
                 $dayName = $dayLessons->first()->day->name;
+                $dayShort = $dayLessons->first()->day->short;
                 $lessonsList = [];
 
                 foreach ($dayLessons as $lesson) {
@@ -59,6 +87,7 @@ class PageController extends Controller
                 $formattedLessons[] = [
                     'id' => $dayId,
                     'day' => $dayName,
+                    'short' => $dayShort,
                     'lessons' => $lessonsList
                 ];
             }
@@ -70,7 +99,11 @@ class PageController extends Controller
         }
 
         $groups = Group::all();
-        $weeks = Week::all();
+
+        $weeks = Week::where('start_date', '>=', $today)
+            ->orWhere('id', $week->id)
+            ->orderBy('start_date')
+            ->get();
 
         return Inertia::render('Lessons', [
             'lessonsByWeek' => $lessonsByWeek,

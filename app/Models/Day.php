@@ -8,5 +8,6 @@ class Day extends Model
 {
     protected $fillable = [
         'name',
+        'short',
     ];
 }

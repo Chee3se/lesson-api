@@ -20,7 +20,7 @@ class ScrapeLessons extends Command
      *
      * @var string
      */
-    protected $signature = 'app:scrape-lessons';
+    protected $signature = 'update:lessons';
 
     /**
      * The console command description.
@@ -170,9 +170,6 @@ class ScrapeLessons extends Command
         return $response->json();
     }
 
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
         $this->createDays();
@@ -182,7 +179,11 @@ class ScrapeLessons extends Command
         $timetables = $timetables['r']['regular']['timetables'];
 
         $newWeeksCount = 0;
-        $newLessonsCount = 0;
+        $totalStats = [
+            'created' => 0,
+            'updated' => 0,
+            'deleted' => 0
+        ];
 
         foreach ($timetables as $tt) {
             $ttNum = $tt['tt_num'];
@@ -198,17 +199,10 @@ class ScrapeLessons extends Command
                 $newWeeksCount++;
                 $this->info("Created new week: {$week->name} (ID: {$week->id})");
             } else {
-                $this->info("Week already exists: {$week->name} (ID: {$week->id})");
+                $this->info("Processing week: {$week->name} (ID: {$week->id})");
             }
 
             $weekId = $week->id;
-
-            $existingLessonsCount = Lesson::where('week_id', $weekId)->count();
-
-            if ($existingLessonsCount > 0) {
-                $this->info("Week {$week->name} already has {$existingLessonsCount} lessons. Skipping...");
-                continue;
-            }
 
             $ttDetails = $this->getTimetableDetails($ttNum);
             $this->info('Timetable details fetched!');
@@ -227,12 +221,16 @@ class ScrapeLessons extends Command
             $this->createGroups($classes, $teachers);
             $this->createDivisions($groups);
 
-            $newLessonsCount += $this->processCardsAndCreateLessons($cards, $lessons, $weekId, $subjects, $classrooms, $teachers, $classes, $groups);
+            $stats = $this->processCardsAndCreateLessons($cards, $lessons, $weekId, $subjects, $classrooms, $teachers, $classes, $groups);
 
-            $this->info("Processed week {$week->name} successfully.");
+            $totalStats['created'] += $stats['created'];
+            $totalStats['updated'] += $stats['updated'];
+            $totalStats['deleted'] += $stats['deleted'];
+
+            $this->info("Week {$week->name}: Created {$stats['created']} lessons, Updated {$stats['updated']} lessons, Deleted {$stats['deleted']} lessons");
         }
 
-        $this->info("Scraping complete: Added {$newWeeksCount} new weeks and {$newLessonsCount} new lessons.");
+        $this->info("Scraping complete: Added {$newWeeksCount} new weeks, Created {$totalStats['created']} lessons, Updated {$totalStats['updated']} lessons, Deleted {$totalStats['deleted']} lessons");
     }
 
     /**
@@ -334,6 +332,8 @@ class ScrapeLessons extends Command
     private function processCardsAndCreateLessons($cards, $lessons, $weekId, $subjects, $classrooms, $teachers, $classes, $groups)
     {
         $newLessonsCount = 0;
+        $updatedLessonsCount = 0;
+        $processedLessonIds = [];
 
         foreach ($cards as $card) {
             $lessonId = $card['lessonid'];
@@ -422,6 +422,15 @@ class ScrapeLessons extends Command
                 for ($i = 0; $i < $repetitions; $i++) {
                     $currentPeriod = $period + ($i * 2);
 
+                    // Data for new or updated lesson
+                    $lessonData = [
+                        'subject_id' => $subjectId,
+                        'teacher_id' => $teacherId,
+                        'classroom_id' => $classroomId,
+                        'start' => $this->getStartTime($dayId, $currentPeriod),
+                        'end' => $this->getEndTime($dayId, $currentPeriod)
+                    ];
+
                     $existingLesson = Lesson::where([
                         'day_id' => $dayId,
                         'week_id' => $weekId,
@@ -431,25 +440,60 @@ class ScrapeLessons extends Command
                     ])->first();
 
                     if (!$existingLesson) {
-                        Lesson::create([
+                        // Create new lesson
+                        $newLesson = Lesson::create([
                             'day_id' => $dayId,
                             'week_id' => $weekId,
                             'period' => $currentPeriod,
                             'group_id' => $groupId,
                             'division_id' => $divisionId,
-                            'subject_id' => $subjectId,
-                            'teacher_id' => $teacherId,
-                            'classroom_id' => $classroomId,
-                            'start' => $this->getStartTime($dayId, $currentPeriod),
-                            'end' => $this->getEndTime($dayId, $currentPeriod)
+                            ...$lessonData
                         ]);
-
+                        $processedLessonIds[] = $newLesson->id;
                         $newLessonsCount++;
+                    } else {
+                        // Check if lesson needs to be updated
+                        $needsUpdate =
+                            $existingLesson->subject_id != $subjectId ||
+                            $existingLesson->teacher_id != $teacherId ||
+                            $existingLesson->classroom_id != $classroomId ||
+                            $existingLesson->start != $this->getStartTime($dayId, $currentPeriod) ||
+                            $existingLesson->end != $this->getEndTime($dayId, $currentPeriod);
+
+                        if ($needsUpdate) {
+                            $existingLesson->update($lessonData);
+                            $this->line("Updated lesson: Day {$dayId}, Period {$currentPeriod}, Group {$groupName}, Subject {$subjectName}");
+                            $updatedLessonsCount++;
+                        }
+
+                        $processedLessonIds[] = $existingLesson->id;
                     }
                 }
             }
         }
 
-        return $newLessonsCount;
+        // Delete lessons that weren't processed (no longer exist in source data)
+        $deletedLessons = Lesson::where('week_id', $weekId)
+            ->whereNotIn('id', $processedLessonIds)
+            ->get();
+
+        $deletedCount = $deletedLessons->count();
+
+        if ($deletedCount > 0) {
+            foreach ($deletedLessons as $lessonToDelete) {
+                $day = Day::find($lessonToDelete->day_id)->name;
+                $group = Group::find($lessonToDelete->group_id)->name;
+                $subject = Subject::find($lessonToDelete->subject_id)->name;
+
+                $this->warn("Deleting lesson: {$day}, Period {$lessonToDelete->period}, Group {$group}, Subject {$subject}");
+                $lessonToDelete->delete();
+            }
+        }
+
+        return [
+            'created' => $newLessonsCount,
+            'updated' => $updatedLessonsCount,
+            'deleted' => $deletedCount
+        ];
     }
 }

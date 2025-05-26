@@ -21,7 +21,7 @@ class ScrapeAll extends Command
      *
      * @var string
      */
-    protected $signature = 'app:scrape-all';
+    protected $signature = 'create:lessons';
 
     /**
      * The console command description.
@@ -345,6 +345,7 @@ class ScrapeAll extends Command
                 if (!Day::where('name', $day)->exists()) {
                     Day::create([
                         'name' => $day,
+                        'short' => $day == 'Piektdiena' ?  'Pk' : substr($day, 0, 1),
                     ]);
                 }
             }

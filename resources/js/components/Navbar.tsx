@@ -13,7 +13,7 @@ export function Navbar() {
     return (
         <header className="w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-14 max-w-screen-2xl items-center">
-                <div className="flex ml-24">
+                <div className="flex justify-center w-full md:justify-start md:w-auto md:ml-24 sm:ml-12 ml-0">
                     <nav className="flex items-center space-x-6 text-sm font-medium">
                         <a
                             href="/"
@@ -44,7 +44,7 @@ export function Navbar() {
                         </DropdownMenu>
                     </nav>
                 </div>
-                <div className="flex flex-1 items-center justify-end space-x-2 mr-4">
+                <div className="flex flex-1 md:justify-end space-x-2 mr-4">
                     <ThemeSwitcher />
                 </div>
             </div>

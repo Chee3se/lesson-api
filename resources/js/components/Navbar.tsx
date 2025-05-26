@@ -10,6 +10,7 @@ import { ChevronDown } from 'lucide-react';
 import { route } from 'ziggy-js';
 
 export function Navbar() {
+    const storedGroupId = localStorage.getItem('selectedGroupId');
     return (
         <header className="w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-14 max-w-screen-2xl items-center">
@@ -22,7 +23,7 @@ export function Navbar() {
                             Home
                         </a>
                         <a
-                            href="/lessons"
+                            href={storedGroupId ? `/lessons?group_id=${storedGroupId}` : "/lessons"}
                             className="transition-colors hover:text-foreground/80"
                         >
                             Lessons

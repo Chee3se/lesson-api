@@ -73,7 +73,7 @@ export default function Lessons({ lessonsByWeek, groups, weeks, selectedGroupId,
         if (selectedValue !== value) {
             setValue(selectedValue);
             localStorage.setItem('selectedGroupId', selectedValue);
-            router.visit('/lessons', {
+            router.reload({
                 data: { group_id: selectedValue },
                 preserveState: false,
                 replace: true,

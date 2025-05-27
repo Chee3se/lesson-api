@@ -10,7 +10,7 @@ Route::get('/groups', [App\Http\Controllers\ApiController::class, 'groups'])->na
 Route::middleware('throttle:hour')->group(function () {
     Route::get('/update', function () {
         Artisan::call('update:lessons');
-        return response()->json('Update processing started.', 200);
+        return response()->json('Lessons have been updated!', 200);
     })->name('api.update');
 });
 

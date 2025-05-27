@@ -75,7 +75,6 @@ export default function Lessons({ lessonsByWeek, groups, weeks, selectedGroupId,
             localStorage.setItem('selectedGroupId', selectedValue);
             router.reload({
                 data: { group_id: selectedValue },
-                preserveState: false,
                 replace: true,
             });
         } else {

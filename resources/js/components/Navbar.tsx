@@ -13,8 +13,11 @@ export function Navbar() {
     const storedGroupId = localStorage.getItem('selectedGroupId');
     return (
         <header className="w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container flex h-14 max-w-screen-2xl items-center">
-                <div className="flex justify-center w-full md:justify-start md:w-auto md:ml-24 sm:ml-12 ml-0">
+            <div className="container flex h-14 max-w-screen-2xl items-center justify-between mx-auto">
+                <div className="w-1/4 hidden md:block">
+                    {/* Left spacer to balance layout */}
+                </div>
+                <div className="flex justify-center flex-1">
                     <nav className="flex items-center space-x-6 text-sm font-medium">
                         <a
                             href="/"
@@ -45,7 +48,7 @@ export function Navbar() {
                         </DropdownMenu>
                     </nav>
                 </div>
-                <div className="flex flex-1 md:justify-end space-x-2 mr-4">
+                <div className="w-1/4 flex justify-end space-x-2 mr-4">
                     <ThemeSwitcher />
                 </div>
             </div>

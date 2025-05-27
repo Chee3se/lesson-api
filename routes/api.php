@@ -9,8 +9,8 @@ Route::get('/lessons', [App\Http\Controllers\ApiController::class, 'lessons'])->
 Route::get('/groups', [App\Http\Controllers\ApiController::class, 'groups'])->name('api.groups');
 Route::middleware('throttle:hour')->group(function () {
     Route::get('/update', function () {
-        Artisan::queue('update:lessons')->withoutDelay();
-        return response()->json('Update request recieved.', 202);
+        Artisan::call('update:lessons');
+        return response()->json('Update processing started.', 200);
     })->name('api.update');
 });
 

@@ -20,7 +20,7 @@ class PageController extends Controller
         $group = $groupId ? Group::find($groupId) : Group::where('name', 'IPa22')->first();
         $weekId = $request->input('week_id');
 
-        $today = now()->format('Y-m-d');
+        $today = now()->subDays(5)->format('Y-m-d');
 
         if ($weekId) {
             $week = Week::find($weekId);

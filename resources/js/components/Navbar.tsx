@@ -26,7 +26,7 @@ export function Navbar() {
                             Home
                         </a>
                         <a
-                            href={storedGroupId ? `/lessons?group_id=${storedGroupId}` : "/lessons"}
+                            href={storedGroupId ? `/timetable?group_id=${storedGroupId}` : "/timetable"}
                             className="transition-colors hover:text-foreground/80"
                         >
                             Lessons

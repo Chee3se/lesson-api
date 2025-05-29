@@ -10,7 +10,7 @@ import LessonDisplay from '@/components/timetable/LessonDisplay';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export default function Lessons({ lessonsByWeek, groups, weeks, selectedGroupId, selectedWeekId }: {
+export default function Timetable({ lessonsByWeek, groups, weeks, selectedGroupId, selectedWeekId }: {
     lessonsByWeek: Record<string, WeekLessons>,
     groups: Group[],
     weeks: Week[],

@@ -5,4 +5,4 @@ use Inertia\Inertia;
 
 Route::get('/', [\App\Http\Controllers\PageController::class, 'home'])->name('home');
 
-Route::get('/lessons', [\App\Http\Controllers\PageController::class, 'lessons'])->name('lessons');
+Route::get('/timetable', [\App\Http\Controllers\PageController::class, 'timetable'])->name('timetable');

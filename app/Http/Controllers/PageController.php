@@ -14,7 +14,7 @@ class PageController extends Controller
     {
         return Inertia::render('Home');
     }
-    public function lessons(Request $request): \Inertia\Response
+    public function timetable(Request $request): \Inertia\Response
     {
         $groupId = $request->input('group_id');
         $group = $groupId ? Group::find($groupId) : Group::where('name', 'IPa22')->first();
@@ -105,7 +105,7 @@ class PageController extends Controller
             ->orderBy('start_date')
             ->get();
 
-        return Inertia::render('Lessons', [
+        return Inertia::render('Timetable', [
             'lessonsByWeek' => $lessonsByWeek,
             'groups' => $groups,
             'weeks' => $weeks,

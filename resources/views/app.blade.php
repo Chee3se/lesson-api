@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title inertia>{{ config('app.name', 'Laravel') }}</title>
-    <link rel="icon" href="/favicon.ico" />
+
+    <!-- Favicon setup for theme support -->
+    <link rel="icon" href="/favicon-light.ico" type="image/x-icon" media="(prefers-color-scheme: light)">
+    <link rel="icon" href="/favicon-dark.ico" type="image/x-icon" media="(prefers-color-scheme: dark)">
+    <link rel="icon" href="/favicon-dark.ico" type="image/x-icon"> <!-- Fallback -->
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">

@@ -48,7 +48,9 @@ class ApiController extends Controller
 
             $timetableByClass[$targetClassName] = [];
 
-            $allWeeks = \App\Models\Week::orderBy('start_date')->get();
+            $allWeeks = \App\Models\Week::where('start_date', '>=', now()->subDays(5)->format('Y-m-d'))
+            ->orderBy('start_date')
+            ->get();
 
             foreach ($allWeeks as $week) {
                 $weekStartDate = $week->start_date;

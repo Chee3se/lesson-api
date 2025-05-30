@@ -12,8 +12,8 @@ import { router } from '@inertiajs/react';
 
 export function Navbar() {
     const storedGroupId = localStorage.getItem('selectedGroupId');
-    const storedTeacherId = localStorage.getItem('storedTeacherId');
-    const storedClassroomId = localStorage.getItem('classroomId');
+    const storedTeacherId = localStorage.getItem('selectedTeacherId');
+    const storedClassroomId = localStorage.getItem('selectedClassroomId');
     return (
         <header className="w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-14 max-w-screen-2xl items-center justify-between mx-auto">

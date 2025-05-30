@@ -35,6 +35,28 @@ const TeacherSelector: React.FC<TeacherSelectorProps> = ({
         setValue(selectedTeacherId);
     }, [selectedTeacherId]);
 
+    // Function to normalize text by removing diacritics and converting to lowercase
+    const normalizeText = (text: string): string => {
+        return text
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+            .replace(/[āăâàáäãåą]/g, 'a')
+            .replace(/[ēĕêèéëę]/g, 'e')
+            .replace(/[īĭîìíïįı]/g, 'i')
+            .replace(/[ōŏôòóöõøų]/g, 'o')
+            .replace(/[ūŭûùúüů]/g, 'u')
+            .replace(/[ć]/g, 'c')
+            .replace(/[ģ]/g, 'g')
+            .replace(/[ķ]/g, 'k')
+            .replace(/[ļ]/g, 'l')
+            .replace(/[ņ]/g, 'n')
+            .replace(/[ŗ]/g, 'r')
+            .replace(/[ş]/g, 's')
+            .replace(/[ţ]/g, 't')
+            .replace(/[ž]/g, 'z');
+    };
+
     const handleTeacherSelect = (selectedValue: string) => {
         if (selectedValue !== value) {
             setValue(selectedValue);
@@ -42,6 +64,12 @@ const TeacherSelector: React.FC<TeacherSelectorProps> = ({
         }
         setOpen(false);
     };
+
+    // Create teachers with normalized search values
+    const teachersWithNormalizedSearch = teachers.map(teacher => ({
+        ...teacher,
+        normalizedName: normalizeText(teacher.name)
+    }));
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -59,7 +87,17 @@ const TeacherSelector: React.FC<TeacherSelectorProps> = ({
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[200px] p-0">
-                <Command>
+                <Command
+                    filter={(value, search) => {
+                        // Find the teacher with this normalized name
+                        const teacher = teachersWithNormalizedSearch.find(t => t.normalizedName === value);
+                        if (!teacher) return 0;
+
+                        // Normalize the search input and check if it's included in the teacher's normalized name
+                        const normalizedSearch = normalizeText(search);
+                        return teacher.normalizedName.includes(normalizedSearch) ? 1 : 0;
+                    }}
+                >
                     <CommandInput
                         placeholder="Meklēt skolotāju..."
                         className="ring-0 border-0 focus-visible:ring-offset-0 focus-visible:ring-0"
@@ -67,10 +105,10 @@ const TeacherSelector: React.FC<TeacherSelectorProps> = ({
                     <CommandList>
                         <CommandEmpty>Skolotājs netika atrasts.</CommandEmpty>
                         <CommandGroup>
-                            {teachers.map((teacher) => (
+                            {teachersWithNormalizedSearch.map((teacher) => (
                                 <CommandItem
                                     key={teacher.id}
-                                    value={teacher.name}
+                                    value={teacher.normalizedName}
                                     onSelect={() => handleTeacherSelect(String(teacher.id))}
                                 >
                                     <Check

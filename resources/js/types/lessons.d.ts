@@ -20,6 +20,16 @@ export interface Group {
     name: string;
 }
 
+export interface Teacher {
+    id: number;
+    name: string;
+}
+
+export interface Classroom {
+    id: number;
+    name: string;
+}
+
 export interface Week {
     id: number;
     name: string;

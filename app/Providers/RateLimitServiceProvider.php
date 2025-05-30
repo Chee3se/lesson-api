@@ -21,6 +21,6 @@ class RateLimitServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        RateLimiter::for('hour', fn () => Limit::perHour(2));
+        RateLimiter::for('hour', fn () => Limit::perHour(1));
     }
 }

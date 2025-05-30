@@ -1,11 +1,14 @@
 import React from 'react';
 import { Lesson, LessonGroup } from '@/types/lessons';
 
+type DisplayContext = 'general' | 'teacher' | 'classroom' | 'group';
+
 interface LessonDisplayProps {
     lessons: Lesson[];
+    context: DisplayContext;
 }
 
-const LessonDisplay: React.FC<LessonDisplayProps> = ({ lessons }) => {
+const LessonDisplay: React.FC<LessonDisplayProps> = ({ lessons, context = 'general' }) => {
     const groupLessonsByTime = (lessons: Lesson[]): LessonGroup[] => {
         const groups: Record<string, Lesson[]> = {};
 
@@ -22,6 +25,10 @@ const LessonDisplay: React.FC<LessonDisplayProps> = ({ lessons }) => {
             lessons
         }));
     };
+
+    const shouldShowTeacher = context !== 'teacher';
+    const shouldShowClassroom = context !== 'classroom';
+    const shouldShowGroup = context !== 'group';
 
     const groupedLessons = groupLessonsByTime(lessons);
 
@@ -50,7 +57,7 @@ const LessonDisplay: React.FC<LessonDisplayProps> = ({ lessons }) => {
                             </div>
 
                             <div className="flex flex-row gap-16 text-sm mt-3">
-                                {group.lessons[0].teacher !== null && (
+                                {(group.lessons[0].teacher !== null && shouldShowTeacher) && (
                                     <div className="flex items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-muted-foreground" viewBox="0 0 20 20" fill="currentColor">
                                             <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
@@ -58,12 +65,20 @@ const LessonDisplay: React.FC<LessonDisplayProps> = ({ lessons }) => {
                                         <span>{group.lessons[0].teacher}</span>
                                     </div>
                                 )}
-                                {group.lessons[0].classroom !== null && (
+                                {(group.lessons[0].classroom !== null  && shouldShowClassroom) && (
                                     <div className="flex items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-muted-foreground" viewBox="0 0 20 20" fill="currentColor">
                                             <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1.581.814L10 13.197l-4.419 3.617A1 1 0 014 16V4z" clipRule="evenodd" />
                                         </svg>
                                         <span>{group.lessons[0].classroom}</span>
+                                    </div>
+                                )}
+                                {(group.lessons[0].group !== null  && shouldShowGroup) && (
+                                    <div className="flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5 text-muted-foreground" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+                                        </svg>
+                                        <span>{group.lessons[0].group}</span>
                                     </div>
                                 )}
                                 {(group.lessons[0].teacher == null && group.lessons[0].classroom == null) && (

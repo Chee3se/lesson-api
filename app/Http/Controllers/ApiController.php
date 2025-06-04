@@ -114,7 +114,15 @@ class ApiController extends Controller
         return response()->json($timetableByClass);
     }
     public function lessons(Request $request) {
-        $lessons = \App\Models\Lesson::with(['day', 'subject', 'teacher', 'classroom', 'week', 'division'])->get();
+        $allWeekIds = \App\Models\Week::where('start_date', '>=', now()->subDays(5)
+            ->format('Y-m-d'))
+            ->orderBy('start_date')
+            ->get('id');
+
+        $lessons = \App\Models\Lesson::whereIn('week_id', $allWeekIds)
+            ->with(['day', 'subject', 'teacher', 'classroom', 'week', 'division'])
+            ->get();
+
         return response()->json($lessons);
     }
     public function groups(Request $request) {

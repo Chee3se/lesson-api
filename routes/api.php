@@ -12,6 +12,10 @@ Route::middleware('throttle:hour')->group(function () {
         Artisan::call('update:lessons');
         return response()->json('Lessons have been updated!', 200);
     })->name('api.update');
+    Route::get('/migrate', function () {
+        Artisan::call('migrate:fresh');
+        return response()->json('Migrated!', 200);
+    });
 });
 
 Route::get('/user', function (Request $request) {

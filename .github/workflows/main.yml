@@ -43,13 +43,3 @@ jobs:
             **/.github/**
             **/node_modules/**
             **/vendor/**
-
-      - name: 🗃️ Test
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.CPANEL_SERVER }}
-          username: ${{ secrets.CPANEL_USERNAME }}
-          password: ${{ secrets.CPANEL_PASSWORD }}
-          script: |
-            cd /
-            ls -a

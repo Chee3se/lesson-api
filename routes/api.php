@@ -29,7 +29,7 @@ Route::get('/update', function () {
 })->name('api.update');
 Route::get('/migrate', function () {
     try {
-        $exitCode = Artisan::call('migrate:fresh');
+        $exitCode = Artisan::call('migrate:fresh', ['--force' => true]);
         $output = Artisan::output();
 
         return response()->json([

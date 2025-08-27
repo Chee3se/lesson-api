@@ -11,12 +11,38 @@ Route::middleware('throttle:hour')->group(function () {
 });
 
 Route::get('/update', function () {
-    Artisan::call('update:lessons');
-    return response()->json('Lessons have been updated!', 200);
+    try {
+        $exitCode = Artisan::call('update:lessons');
+        $output = Artisan::output();
+
+        return response()->json([
+            'status' => 'completed',
+            'exit_code' => $exitCode,
+            'output' => $output
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
 })->name('api.update');
 Route::get('/migrate', function () {
-    Artisan::call('migrate:fresh');
-    return response()->json('Migrated!', 200);
+    try {
+        $exitCode = Artisan::call('migrate:fresh');
+        $output = Artisan::output();
+
+        return response()->json([
+            'status' => 'completed',
+            'exit_code' => $exitCode,
+            'output' => $output
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
 });
 
 Route::get('/user', function (Request $request) {

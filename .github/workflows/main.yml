@@ -21,7 +21,7 @@ jobs:
       - name: 🐘 Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
+          php-version: '8.2'
           extensions: mbstring, xml, bcmath, pdo, mysql, zip, curl
           tools: composer
 
@@ -64,4 +64,4 @@ jobs:
           password: ${{ secrets.CPANEL_PASSWORD }}
           script: |
             cd /path/to/your/laravel/project
-            php artisan migrate --force
+            php artisan migrate:fresh --force

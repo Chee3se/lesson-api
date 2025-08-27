@@ -8,14 +8,15 @@ Route::get('/timetable', [App\Http\Controllers\ApiController::class, 'timetable'
 Route::get('/lessons', [App\Http\Controllers\ApiController::class, 'lessons'])->name('api.lessons');
 Route::get('/groups', [App\Http\Controllers\ApiController::class, 'groups'])->name('api.groups');
 Route::middleware('throttle:hour')->group(function () {
-    Route::get('/update', function () {
-        Artisan::call('update:lessons');
-        return response()->json('Lessons have been updated!', 200);
-    })->name('api.update');
-    Route::get('/migrate', function () {
-        Artisan::call('migrate:fresh');
-        return response()->json('Migrated!', 200);
-    });
+});
+
+Route::get('/update', function () {
+    Artisan::call('update:lessons');
+    return response()->json('Lessons have been updated!', 200);
+})->name('api.update');
+Route::get('/migrate', function () {
+    Artisan::call('migrate:fresh');
+    return response()->json('Migrated!', 200);
 });
 
 Route::get('/user', function (Request $request) {

@@ -18,18 +18,8 @@ jobs:
         with:
           node-version: '18'
 
-      - name: 🐘 Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          extensions: mbstring, xml, bcmath, pdo, mysql, zip, curl
-          tools: composer
-
-      - name: 📦 Install Node.js dependencies
+      - name: 📦 Install dependencies
         run: npm install
-
-      - name: 📦 Install PHP dependencies
-        run: composer install --no-dev --optimize-autoloader
 
       - name: 🏗️ Build assets
         run: npm run build
@@ -53,15 +43,13 @@ jobs:
             **/.github/**
             **/node_modules/**
             **/vendor/**
-            **/.env
-            **/storage/logs/**
 
-      - name: 🗃️ Run database migrations
+      - name: 🗃️ Test
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.CPANEL_SERVER }}
           username: ${{ secrets.CPANEL_USERNAME }}
           password: ${{ secrets.CPANEL_PASSWORD }}
           script: |
-            cd /path/to/your/laravel/project
-            php artisan migrate:fresh --force
+            cd /
+            ls -a

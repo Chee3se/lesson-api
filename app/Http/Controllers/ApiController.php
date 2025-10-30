@@ -35,13 +35,12 @@ class ApiController extends Controller
             return response()->json([]);
         }
 
-        $allDays = [
+        $baseDays = [
             "Pirmdiena",
             "Otrdiena",
             "Trešdiena",
             "Ceturtdiena",
             "Piektdiena",
-            "Sestdiena",
         ];
 
         $timetableByClass = [];
@@ -80,6 +79,16 @@ class ApiController extends Controller
                 $weekLessonsByDay = $weekLessons->groupBy(function ($lesson) {
                     return $lesson->day->name;
                 });
+
+                // Check if this week has Saturday lessons
+                $hasSaturday =
+                    isset($weekLessonsByDay["Sestdiena"]) &&
+                    $weekLessonsByDay["Sestdiena"]->isNotEmpty();
+
+                // Use appropriate days array based on whether week has Saturday
+                $allDays = $hasSaturday
+                    ? array_merge($baseDays, ["Sestdiena"])
+                    : $baseDays;
 
                 $weeklyTimetable = [];
 

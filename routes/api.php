@@ -16,6 +16,29 @@ Route::get("/groups", [
     App\Http\Controllers\ApiController::class,
     "groups",
 ])->name("api.groups");
+Route::get("/teachers", [
+    App\Http\Controllers\ApiController::class,
+    "teachers",
+])->name("api.teachers");
+Route::get("/subjects", [
+    App\Http\Controllers\ApiController::class,
+    "subjects",
+])->name("api.subjects");
+Route::get("/classrooms", [
+    App\Http\Controllers\ApiController::class,
+    "classrooms",
+])->name("api.classrooms");
+Route::get("/divisions", [
+    App\Http\Controllers\ApiController::class,
+    "divisions",
+])->name("api.divisions");
+Route::get("/days", [App\Http\Controllers\ApiController::class, "days"])->name(
+    "api.days",
+);
+Route::get("/weeks", [
+    App\Http\Controllers\ApiController::class,
+    "weeks",
+])->name("api.weeks");
 Route::middleware("throttle:hour")->group(function () {
     Route::get("/update", function () {
         try {

@@ -6,7 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Teacher extends Model
 {
-    protected $fillable = [
-        'name',
-    ];
+    protected $fillable = ["name"];
+
+    public function lessons()
+    {
+        return $this->hasMany(Lesson::class);
+    }
+
+    public function groups()
+    {
+        return $this->hasMany(Group::class);
+    }
 }

@@ -7,16 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 class Lesson extends Model
 {
     protected $fillable = [
-        'teacher_id',
-        'classroom_id',
-        'subject_id',
-        'group_id',
-        'day_id',
-        'week_id',
-        'division_id',
-        'period',
-        'start',
-        'end',
+        "teacher_id",
+        "classroom_id",
+        "subject_id",
+        "group_id",
+        "day_id",
+        "week_id",
+        "division_id",
+        "period",
+        "start",
+        "end",
     ];
 
     public function teacher()

@@ -20,21 +20,21 @@ class ScrapeLessons extends Command
      *
      * @var string
      */
-    protected $signature = 'update:lessons';
+    protected $signature = "update:lessons";
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Scrape timetable data from EduPage';
+    protected $description = "Scrape timetable data from EduPage";
 
     /**
      * Session cookie value
      *
      * @var string
      */
-    protected $sessionId = '87889684f00bd60486f6323f52a1da14';
+    protected $sessionId = "87889684f00bd60486f6323f52a1da14";
 
     /**
      * Convert day code (e.g., "01000") to day name
@@ -44,13 +44,26 @@ class ScrapeLessons extends Command
      */
     function getDayId($dayCode)
     {
-        $days = [
-            '10000' => Day::where('name', 'Pirmdiena')->first()->id,
-            '01000' => Day::where('name', 'Otrdiena')->first()->id,
-            '00100' => Day::where('name', 'Trešdiena')->first()->id,
-            '00010' => Day::where('name', 'Ceturtdiena')->first()->id,
-            '00001' => Day::where('name', 'Piektdiena')->first()->id,
-        ];
+        // Handle 6-character day codes (includes Saturday)
+        if (strlen($dayCode) === 6) {
+            $days = [
+                "100000" => Day::where("name", "Pirmdiena")->first()->id,
+                "010000" => Day::where("name", "Otrdiena")->first()->id,
+                "001000" => Day::where("name", "Trešdiena")->first()->id,
+                "000100" => Day::where("name", "Ceturtdiena")->first()->id,
+                "000010" => Day::where("name", "Piektdiena")->first()->id,
+                "000001" => Day::where("name", "Sestdiena")->first()->id,
+            ];
+        } else {
+            // Handle 5-character day codes (Mon-Fri only)
+            $days = [
+                "10000" => Day::where("name", "Pirmdiena")->first()->id,
+                "01000" => Day::where("name", "Otrdiena")->first()->id,
+                "00100" => Day::where("name", "Trešdiena")->first()->id,
+                "00010" => Day::where("name", "Ceturtdiena")->first()->id,
+                "00001" => Day::where("name", "Piektdiena")->first()->id,
+            ];
+        }
 
         return $days[$dayCode] ?? null;
     }
@@ -64,27 +77,29 @@ class ScrapeLessons extends Command
      */
     function getStartTime($dayId, $period)
     {
-        $isFriday = Day::find($dayId)->name === 'Piektdiena';
+        $dayName = Day::find($dayId)->name;
+        $isFriday = $dayName === "Piektdiena";
+        $isSaturday = $dayName === "Sestdiena";
 
-        if ($isFriday) {
+        if ($isFriday || $isSaturday) {
             $startTimes = [
-                1 => '08:10:00',
-                3 => '09:40:00',
-                5 => '11:10:00',
-                7 => '13:00:00',
-                9 => '14:30:00',
+                1 => "08:10:00",
+                3 => "09:40:00",
+                5 => "11:10:00",
+                7 => "13:00:00",
+                9 => "14:30:00",
             ];
         } else {
             $startTimes = [
-                1 => '08:30:00',
-                3 => '10:10:00',
-                5 => '12:30:00',
-                7 => '14:00:00',
-                9 => '15:30:00',
+                1 => "08:30:00",
+                3 => "10:10:00",
+                5 => "12:30:00",
+                7 => "14:00:00",
+                9 => "15:30:00",
             ];
         }
 
-        return $startTimes[$period] ?? '08:00:00';
+        return $startTimes[$period] ?? "08:00:00";
     }
 
     /**
@@ -97,8 +112,8 @@ class ScrapeLessons extends Command
     function getEndTime($dayId, $period)
     {
         $startTime = $this->getStartTime($dayId, $period);
-        $timestamp = strtotime($startTime) + (80 * 60);
-        return date('H:i:s', $timestamp);
+        $timestamp = strtotime($startTime) + 80 * 60;
+        return date("H:i:s", $timestamp);
     }
 
     /**
@@ -109,21 +124,22 @@ class ScrapeLessons extends Command
     protected function getHeaders()
     {
         return [
-            'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:138.0) Gecko/20100101 Firefox/138.0',
-            'Accept' => '*/*',
-            'Accept-Language' => 'en-US,en;q=0.5',
-            'Accept-Encoding' => 'gzip, deflate, br, zstd',
-            'Referer' => 'https://pteh.edupage.org/',
-            'Content-Type' => 'application/json; charset=utf-8',
-            'Origin' => 'https://pteh.edupage.org',
-            'DNT' => '1',
-            'Sec-GPC' => '1',
-            'Cookie' => 'PHPSESSID=' . $this->sessionId,
-            'Sec-Fetch-Dest' => 'empty',
-            'Sec-Fetch-Mode' => 'cors',
-            'Sec-Fetch-Site' => 'same-origin',
-            'Pragma' => 'no-cache',
-            'Cache-Control' => 'no-cache',
+            "User-Agent" =>
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:138.0) Gecko/20100101 Firefox/138.0",
+            "Accept" => "*/*",
+            "Accept-Language" => "en-US,en;q=0.5",
+            "Accept-Encoding" => "gzip, deflate, br, zstd",
+            "Referer" => "https://pteh.edupage.org/",
+            "Content-Type" => "application/json; charset=utf-8",
+            "Origin" => "https://pteh.edupage.org",
+            "DNT" => "1",
+            "Sec-GPC" => "1",
+            "Cookie" => "PHPSESSID=" . $this->sessionId,
+            "Sec-Fetch-Dest" => "empty",
+            "Sec-Fetch-Mode" => "cors",
+            "Sec-Fetch-Site" => "same-origin",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "no-cache",
         ];
     }
 
@@ -132,17 +148,20 @@ class ScrapeLessons extends Command
      */
     public function timetables()
     {
-        $this->info('Fetching available timetables...');
+        $this->info("Fetching available timetables...");
 
-        $website = 'https://pteh.edupage.org/timetable/server/ttviewer.js?__func=getTTViewerData';
+        $website =
+            "https://pteh.edupage.org/timetable/server/ttviewer.js?__func=getTTViewerData";
 
         $payload = [
-            '__args' => [null, 2024],
-            '__gsh' => '00000000',
+            "__args" => [null, 2025],
+            "__gsh" => "00000000",
         ];
 
-        $response = Http::withHeaders($this->getHeaders())
-            ->post($website, $payload);
+        $response = Http::withHeaders($this->getHeaders())->post(
+            $website,
+            $payload,
+        );
 
         return $response->json();
     }
@@ -157,15 +176,18 @@ class ScrapeLessons extends Command
     {
         $this->info("Getting details for timetable {$ttNum}...");
 
-        $website = 'https://pteh.edupage.org/timetable/server/regulartt.js?__func=regularttGetData';
+        $website =
+            "https://pteh.edupage.org/timetable/server/regulartt.js?__func=regularttGetData";
 
         $payload = [
-            '__args' => [null, $ttNum],
-            '__gsh' => '00000000',
+            "__args" => [null, $ttNum],
+            "__gsh" => "00000000",
         ];
 
-        $response = Http::withHeaders($this->getHeaders())
-            ->post($website, $payload);
+        $response = Http::withHeaders($this->getHeaders())->post(
+            $website,
+            $payload,
+        );
 
         return $response->json();
     }
@@ -175,29 +197,31 @@ class ScrapeLessons extends Command
         $this->createDays();
 
         $timetables = $this->timetables();
-        $this->info('Timetables fetched!');
-        $timetables = $timetables['r']['regular']['timetables'];
+        $this->info("Timetables fetched!");
+        $timetables = $timetables["r"]["regular"]["timetables"];
 
         $newWeeksCount = 0;
         $totalStats = [
-            'created' => 0,
-            'updated' => 0,
-            'deleted' => 0
+            "created" => 0,
+            "updated" => 0,
+            "deleted" => 0,
         ];
 
         foreach ($timetables as $tt) {
-            $ttNum = $tt['tt_num'];
+            $ttNum = $tt["tt_num"];
 
-            $week = Week::where('number', $ttNum)->first();
+            $week = Week::where("number", $ttNum)->first();
 
             if (!$week) {
                 $week = Week::create([
-                    'name' => $tt['text'],
-                    'number' => $ttNum,
-                    'start_date' => $tt['datefrom'],
+                    "name" => $tt["text"],
+                    "number" => $ttNum,
+                    "start_date" => $tt["datefrom"],
                 ]);
                 $newWeeksCount++;
-                $this->info("Created new week: {$week->name} (ID: {$week->id})");
+                $this->info(
+                    "Created new week: {$week->name} (ID: {$week->id})",
+                );
             } else {
                 $this->info("Processing week: {$week->name} (ID: {$week->id})");
             }
@@ -205,15 +229,28 @@ class ScrapeLessons extends Command
             $weekId = $week->id;
 
             $ttDetails = $this->getTimetableDetails($ttNum);
-            $this->info('Timetable details fetched!');
+            $this->info("Timetable details fetched!");
 
-            $groups = $this->indexArrayById($ttDetails['r']['dbiAccessorRes']['tables'][15]['data_rows']);
-            $teachers = $this->indexArrayById($ttDetails['r']['dbiAccessorRes']['tables'][14]['data_rows']);
-            $subjects = $this->indexArrayById($ttDetails['r']['dbiAccessorRes']['tables'][13]['data_rows']);
-            $classrooms = $this->indexArrayById($ttDetails['r']['dbiAccessorRes']['tables'][11]['data_rows']);
-            $classes = $this->indexArrayById($ttDetails['r']['dbiAccessorRes']['tables'][12]['data_rows']);
-            $lessons = $this->indexArrayById($ttDetails['r']['dbiAccessorRes']['tables'][18]['data_rows']);
-            $cards = $ttDetails['r']['dbiAccessorRes']['tables'][20]['data_rows'];
+            $groups = $this->indexArrayById(
+                $ttDetails["r"]["dbiAccessorRes"]["tables"][15]["data_rows"],
+            );
+            $teachers = $this->indexArrayById(
+                $ttDetails["r"]["dbiAccessorRes"]["tables"][14]["data_rows"],
+            );
+            $subjects = $this->indexArrayById(
+                $ttDetails["r"]["dbiAccessorRes"]["tables"][13]["data_rows"],
+            );
+            $classrooms = $this->indexArrayById(
+                $ttDetails["r"]["dbiAccessorRes"]["tables"][11]["data_rows"],
+            );
+            $classes = $this->indexArrayById(
+                $ttDetails["r"]["dbiAccessorRes"]["tables"][12]["data_rows"],
+            );
+            $lessons = $this->indexArrayById(
+                $ttDetails["r"]["dbiAccessorRes"]["tables"][18]["data_rows"],
+            );
+            $cards =
+                $ttDetails["r"]["dbiAccessorRes"]["tables"][20]["data_rows"];
 
             $this->createTeachers($teachers);
             $this->createClassrooms($classrooms);
@@ -221,16 +258,29 @@ class ScrapeLessons extends Command
             $this->createGroups($classes, $teachers);
             $this->createDivisions($groups);
 
-            $stats = $this->processCardsAndCreateLessons($cards, $lessons, $weekId, $subjects, $classrooms, $teachers, $classes, $groups);
+            $stats = $this->processCardsAndCreateLessons(
+                $cards,
+                $lessons,
+                $weekId,
+                $subjects,
+                $classrooms,
+                $teachers,
+                $classes,
+                $groups,
+            );
 
-            $totalStats['created'] += $stats['created'];
-            $totalStats['updated'] += $stats['updated'];
-            $totalStats['deleted'] += $stats['deleted'];
+            $totalStats["created"] += $stats["created"];
+            $totalStats["updated"] += $stats["updated"];
+            $totalStats["deleted"] += $stats["deleted"];
 
-            $this->info("Week {$week->name}: Created {$stats['created']} lessons, Updated {$stats['updated']} lessons, Deleted {$stats['deleted']} lessons");
+            $this->info(
+                "Week {$week->name}: Created {$stats["created"]} lessons, Updated {$stats["updated"]} lessons, Deleted {$stats["deleted"]} lessons",
+            );
         }
 
-        $this->info("Scraping complete: Added {$newWeeksCount} new weeks, Created {$totalStats['created']} lessons, Updated {$totalStats['updated']} lessons, Deleted {$totalStats['deleted']} lessons");
+        $this->info(
+            "Scraping complete: Added {$newWeeksCount} new weeks, Created {$totalStats["created"]} lessons, Updated {$totalStats["updated"]} lessons, Deleted {$totalStats["deleted"]} lessons",
+        );
     }
 
     /**
@@ -239,16 +289,17 @@ class ScrapeLessons extends Command
     private function createDays()
     {
         $days = [
-            'Pirmdiena',
-            'Otrdiena',
-            'Trešdiena',
-            'Ceturtdiena',
-            'Piektdiena',
+            "Pirmdiena",
+            "Otrdiena",
+            "Trešdiena",
+            "Ceturtdiena",
+            "Piektdiena",
+            "Sestdiena",
         ];
 
         foreach ($days as $day) {
-            if (!Day::where('name', $day)->exists()) {
-                Day::create(['name' => $day]);
+            if (!Day::where("name", $day)->exists()) {
+                Day::create(["name" => $day]);
             }
         }
     }
@@ -260,7 +311,7 @@ class ScrapeLessons extends Command
     {
         $indexed = [];
         foreach ($array as $item) {
-            $indexed[$item['id']] = $item;
+            $indexed[$item["id"]] = $item;
         }
         return $indexed;
     }
@@ -271,7 +322,7 @@ class ScrapeLessons extends Command
     private function createTeachers($teachers)
     {
         foreach ($teachers as $teacher) {
-            Teacher::firstOrCreate(['name' => $teacher['name']]);
+            Teacher::firstOrCreate(["name" => $teacher["name"]]);
         }
     }
 
@@ -281,7 +332,7 @@ class ScrapeLessons extends Command
     private function createClassrooms($classrooms)
     {
         foreach ($classrooms as $classroom) {
-            Classroom::firstOrCreate(['name' => $classroom['name']]);
+            Classroom::firstOrCreate(["name" => $classroom["name"]]);
         }
     }
 
@@ -292,8 +343,8 @@ class ScrapeLessons extends Command
     {
         foreach ($subjects as $subject) {
             Subject::firstOrCreate(
-                ['name' => $subject['name']],
-                ['short' => $subject['short']]
+                ["name" => $subject["name"]],
+                ["short" => $subject["short"]],
             );
         }
     }
@@ -305,13 +356,19 @@ class ScrapeLessons extends Command
     {
         foreach ($classes as $class) {
             $teacherId = null;
-            if (isset($class['teacherids'][0]) && isset($teachers[$class['teacherids'][0]])) {
-                $teacherId = Teacher::where('name', $teachers[$class['teacherids'][0]]['name'])->first()->id;
+            if (
+                isset($class["teacherids"][0]) &&
+                isset($teachers[$class["teacherids"][0]])
+            ) {
+                $teacherId = Teacher::where(
+                    "name",
+                    $teachers[$class["teacherids"][0]]["name"],
+                )->first()->id;
             }
 
             Group::firstOrCreate(
-                ['name' => $class['name']],
-                ['teacher_id' => $teacherId]
+                ["name" => $class["name"]],
+                ["teacher_id" => $teacherId],
             );
         }
     }
@@ -322,21 +379,29 @@ class ScrapeLessons extends Command
     private function createDivisions($groups)
     {
         foreach ($groups as $group) {
-            Division::firstOrCreate(['name' => $group['name']]);
+            Division::firstOrCreate(["name" => $group["name"]]);
         }
     }
 
     /**
      * Process cards and create lessons
      */
-    private function processCardsAndCreateLessons($cards, $lessons, $weekId, $subjects, $classrooms, $teachers, $classes, $groups)
-    {
+    private function processCardsAndCreateLessons(
+        $cards,
+        $lessons,
+        $weekId,
+        $subjects,
+        $classrooms,
+        $teachers,
+        $classes,
+        $groups,
+    ) {
         $newLessonsCount = 0;
         $updatedLessonsCount = 0;
         $processedLessonIds = [];
 
         foreach ($cards as $card) {
-            $lessonId = $card['lessonid'];
+            $lessonId = $card["lessonid"];
 
             if (!isset($lessons[$lessonId])) {
                 $this->warn("Skipping card with missing lesson: {$lessonId}");
@@ -344,57 +409,72 @@ class ScrapeLessons extends Command
             }
 
             $lesson = $lessons[$lessonId];
-            $dayCode = $card['days'];
+            $dayCode = $card["days"];
             $dayId = $this->getDayId($dayCode);
 
             if ($dayId === null) {
                 continue;
             }
 
-            $period = (int)$card['period'];
+            $period = (int) $card["period"];
 
             $classroomId = null;
-            if (isset($card['classroomids']) && !empty($card['classroomids']) && $card['classroomids'][0] !== "") {
-                $classroomName = $classrooms[$card['classroomids'][0]]['name'] ?? null;
+            if (
+                isset($card["classroomids"]) &&
+                !empty($card["classroomids"]) &&
+                $card["classroomids"][0] !== ""
+            ) {
+                $classroomName =
+                    $classrooms[$card["classroomids"][0]]["name"] ?? null;
                 if ($classroomName) {
-                    $classroom = Classroom::where('name', $classroomName)->first();
+                    $classroom = Classroom::where(
+                        "name",
+                        $classroomName,
+                    )->first();
                     $classroomId = $classroom->id;
                 }
             }
 
             $subjectId = null;
-            if (isset($lesson['subjectid']) && isset($subjects[$lesson['subjectid']])) {
-                $subjectName = $subjects[$lesson['subjectid']]['name'];
-                $subject = Subject::where('name', $subjectName)->first();
+            if (
+                isset($lesson["subjectid"]) &&
+                isset($subjects[$lesson["subjectid"]])
+            ) {
+                $subjectName = $subjects[$lesson["subjectid"]]["name"];
+                $subject = Subject::where("name", $subjectName)->first();
                 $subjectId = $subject->id;
             } else {
-                $this->warn("Skipping lesson with missing subject: {$lessonId}");
+                $this->warn(
+                    "Skipping lesson with missing subject: {$lessonId}",
+                );
                 continue;
             }
 
             $teacherId = null;
-            if (isset($lesson['teacherids']) && !empty($lesson['teacherids'])) {
-                $teacherId = $lesson['teacherids'][0];
+            if (isset($lesson["teacherids"]) && !empty($lesson["teacherids"])) {
+                $teacherId = $lesson["teacherids"][0];
                 if (isset($teachers[$teacherId])) {
-                    $teacherName = $teachers[$teacherId]['name'];
-                    $teacher = Teacher::where('name', $teacherName)->first();
+                    $teacherName = $teachers[$teacherId]["name"];
+                    $teacher = Teacher::where("name", $teacherName)->first();
                     $teacherId = $teacher->id;
                 }
             }
 
-            if (!isset($lesson['classids']) || empty($lesson['classids'])) {
+            if (!isset($lesson["classids"]) || empty($lesson["classids"])) {
                 $this->warn("Skipping lesson with no class IDs: {$lessonId}");
                 continue;
             }
 
-            foreach ($lesson['classids'] as $classId) {
+            foreach ($lesson["classids"] as $classId) {
                 if (!isset($classes[$classId])) {
-                    $this->warn("Skipping class ID not found in classes: {$classId}");
+                    $this->warn(
+                        "Skipping class ID not found in classes: {$classId}",
+                    );
                     continue;
                 }
 
-                $groupName = $classes[$classId]['name'];
-                $group = Group::where('name', $groupName)->first();
+                $groupName = $classes[$classId]["name"];
+                $group = Group::where("name", $groupName)->first();
                 if (!$group) {
                     $this->warn("Group not found: {$groupName}");
                     continue;
@@ -402,13 +482,16 @@ class ScrapeLessons extends Command
 
                 $groupId = $group->id;
 
-                if (!isset($lesson['groupids'][0]) || !isset($groups[$lesson['groupids'][0]])) {
+                if (
+                    !isset($lesson["groupids"][0]) ||
+                    !isset($groups[$lesson["groupids"][0]])
+                ) {
                     $this->warn("Division not found for lesson: {$lessonId}");
                     continue;
                 }
 
-                $divisionName = $groups[$lesson['groupids'][0]]['name'];
-                $division = Division::where('name', $divisionName)->first();
+                $divisionName = $groups[$lesson["groupids"][0]]["name"];
+                $division = Division::where("name", $divisionName)->first();
                 if (!$division) {
                     $this->warn("Division not found: {$divisionName}");
                     continue;
@@ -416,38 +499,38 @@ class ScrapeLessons extends Command
 
                 $divisionId = $division->id;
 
-                $durationPeriods = $lesson['durationperiods'] ?? 2;
+                $durationPeriods = $lesson["durationperiods"] ?? 2;
                 $repetitions = ceil($durationPeriods / 2);
 
                 for ($i = 0; $i < $repetitions; $i++) {
-                    $currentPeriod = $period + ($i * 2);
+                    $currentPeriod = $period + $i * 2;
 
                     // Data for new or updated lesson
                     $lessonData = [
-                        'subject_id' => $subjectId,
-                        'teacher_id' => $teacherId,
-                        'classroom_id' => $classroomId,
-                        'start' => $this->getStartTime($dayId, $currentPeriod),
-                        'end' => $this->getEndTime($dayId, $currentPeriod)
+                        "subject_id" => $subjectId,
+                        "teacher_id" => $teacherId,
+                        "classroom_id" => $classroomId,
+                        "start" => $this->getStartTime($dayId, $currentPeriod),
+                        "end" => $this->getEndTime($dayId, $currentPeriod),
                     ];
 
                     $existingLesson = Lesson::where([
-                        'day_id' => $dayId,
-                        'week_id' => $weekId,
-                        'period' => $currentPeriod,
-                        'group_id' => $groupId,
-                        'division_id' => $divisionId,
+                        "day_id" => $dayId,
+                        "week_id" => $weekId,
+                        "period" => $currentPeriod,
+                        "group_id" => $groupId,
+                        "division_id" => $divisionId,
                     ])->first();
 
                     if (!$existingLesson) {
                         // Create new lesson
                         $newLesson = Lesson::create([
-                            'day_id' => $dayId,
-                            'week_id' => $weekId,
-                            'period' => $currentPeriod,
-                            'group_id' => $groupId,
-                            'division_id' => $divisionId,
-                            ...$lessonData
+                            "day_id" => $dayId,
+                            "week_id" => $weekId,
+                            "period" => $currentPeriod,
+                            "group_id" => $groupId,
+                            "division_id" => $divisionId,
+                            ...$lessonData,
                         ]);
                         $processedLessonIds[] = $newLesson->id;
                         $newLessonsCount++;
@@ -457,12 +540,16 @@ class ScrapeLessons extends Command
                             $existingLesson->subject_id != $subjectId ||
                             $existingLesson->teacher_id != $teacherId ||
                             $existingLesson->classroom_id != $classroomId ||
-                            $existingLesson->start != $this->getStartTime($dayId, $currentPeriod) ||
-                            $existingLesson->end != $this->getEndTime($dayId, $currentPeriod);
+                            $existingLesson->start !=
+                                $this->getStartTime($dayId, $currentPeriod) ||
+                            $existingLesson->end !=
+                                $this->getEndTime($dayId, $currentPeriod);
 
                         if ($needsUpdate) {
                             $existingLesson->update($lessonData);
-                            $this->line("Updated lesson: Day {$dayId}, Period {$currentPeriod}, Group {$groupName}, Subject {$subjectName}");
+                            $this->line(
+                                "Updated lesson: Day {$dayId}, Period {$currentPeriod}, Group {$groupName}, Subject {$subjectName}",
+                            );
                             $updatedLessonsCount++;
                         }
 
@@ -473,8 +560,8 @@ class ScrapeLessons extends Command
         }
 
         // Delete lessons that weren't processed (no longer exist in source data)
-        $deletedLessons = Lesson::where('week_id', $weekId)
-            ->whereNotIn('id', $processedLessonIds)
+        $deletedLessons = Lesson::where("week_id", $weekId)
+            ->whereNotIn("id", $processedLessonIds)
             ->get();
 
         $deletedCount = $deletedLessons->count();
@@ -485,15 +572,17 @@ class ScrapeLessons extends Command
                 $group = Group::find($lessonToDelete->group_id)->name;
                 $subject = Subject::find($lessonToDelete->subject_id)->name;
 
-                $this->warn("Deleting lesson: {$day}, Period {$lessonToDelete->period}, Group {$group}, Subject {$subject}");
+                $this->warn(
+                    "Deleting lesson: {$day}, Period {$lessonToDelete->period}, Group {$group}, Subject {$subject}",
+                );
                 $lessonToDelete->delete();
             }
         }
 
         return [
-            'created' => $newLessonsCount,
-            'updated' => $updatedLessonsCount,
-            'deleted' => $deletedCount
+            "created" => $newLessonsCount,
+            "updated" => $updatedLessonsCount,
+            "deleted" => $deletedCount,
         ];
     }
 }

@@ -37,6 +37,13 @@ class ScrapeLessons extends Command
     protected $sessionId = "87889684f00bd60486f6323f52a1da14";
 
     /**
+     * Flag to track if Saturday exists in current timetable
+     *
+     * @var bool
+     */
+    protected $hasSaturday = false;
+
+    /**
      * Convert day code (e.g., "01000") to day name
      *
      * @param string $dayCode The binary day code
@@ -54,6 +61,11 @@ class ScrapeLessons extends Command
                 "000010" => Day::where("name", "Piektdiena")->first()->id,
                 "000001" => Day::where("name", "Sestdiena")->first()->id,
             ];
+
+            // Check if this is a Saturday
+            if ($dayCode === "000001") {
+                $this->hasSaturday = true;
+            }
         } else {
             // Handle 5-character day codes (Mon-Fri only)
             $days = [
@@ -81,7 +93,10 @@ class ScrapeLessons extends Command
         $isFriday = $dayName === "Piektdiena";
         $isSaturday = $dayName === "Sestdiena";
 
-        if ($isFriday || $isSaturday) {
+        // Use short times if:
+        // - It's Saturday, OR
+        // - It's Friday AND there's no Saturday in the timetable
+        if ($isSaturday || ($isFriday && !$this->hasSaturday)) {
             $startTimes = [
                 1 => "08:10:00",
                 3 => "09:40:00",
@@ -258,6 +273,18 @@ class ScrapeLessons extends Command
             $this->createGroups($classes, $teachers);
             $this->createDivisions($groups);
 
+            // Reset Saturday flag for each week
+            $this->hasSaturday = false;
+
+            // First pass: check if Saturday exists in this timetable
+            foreach ($cards as $card) {
+                $dayCode = $card["days"];
+                if (strlen($dayCode) === 6 && $dayCode === "000001") {
+                    $this->hasSaturday = true;
+                    break;
+                }
+            }
+
             $stats = $this->processCardsAndCreateLessons(
                 $cards,
                 $lessons,
@@ -273,8 +300,11 @@ class ScrapeLessons extends Command
             $totalStats["updated"] += $stats["updated"];
             $totalStats["deleted"] += $stats["deleted"];
 
+            $saturdayStatus = $this->hasSaturday
+                ? "with Saturday"
+                : "without Saturday";
             $this->info(
-                "Week {$week->name}: Created {$stats["created"]} lessons, Updated {$stats["updated"]} lessons, Deleted {$stats["deleted"]} lessons",
+                "Week {$week->name} ({$saturdayStatus}): Created {$stats["created"]} lessons, Updated {$stats["updated"]} lessons, Deleted {$stats["deleted"]} lessons",
             );
         }
 

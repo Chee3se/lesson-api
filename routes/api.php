@@ -88,6 +88,20 @@ Route::middleware("throttle:hour")->group(function () {
                 );
         }
     })->name("api.update");
+    Route::get("/weeks/{id}", function ($id) {
+        $week = Week::findOrFail($id);
+
+        // Delete all lessons for this week
+        $deletedLessons = Lesson::where("week_id", $week->id)->delete();
+
+        // Delete the week
+        $week->delete();
+
+        return response()->json([
+            "message" => "Week '{$week->name}' deleted successfully",
+            "deleted_lessons" => $deletedLessons,
+        ]);
+    });
 });
 
 Route::get("/user", function (Request $request) {

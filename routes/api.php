@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
+use App\Models\Week;
+use App\Models\Lesson;
 
 Route::get("/timetable", [
     App\Http\Controllers\ApiController::class,
